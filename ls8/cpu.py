@@ -110,6 +110,7 @@ class CPU:
     def run(self):
         """Run the CPU."""
         running = True
+        stackPointer = 0xF4
 
         while running:
             IR = self.ram_read(self.pc)
@@ -133,7 +134,16 @@ class CPU:
             elif IR == 0b01000111:  # PRN
                 print(self.reg[operand_a])
                 self.pc += num_of_operands
+            elif IR == 0b01000101:  # PUSH
+                stackPointer -= 1
+                self.ram_write(stackPointer, self.reg[operand_a])
+                self.pc += num_of_operands
+            elif IR == 0b01000110:  # POP
+                self.reg[operand_a] = self.ram_read(stackPointer)
+                stackPointer += 1
+                self.pc += num_of_operands
             elif IR == 0b00000001:  # HLT
                 running = False
 
+            # increment program counter to the next operation:
             self.pc += 1
