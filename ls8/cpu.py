@@ -39,6 +39,18 @@ class CPU:
             self.ram_write(address, instruction)
             address += 1
 
+    def get_instr_name(self, IR):
+        instructions = {
+            0b10000010: "LDI",
+            0b01000111: "PRN",
+            0b01000101: "PUSH",
+            0b01000110: "POP",
+            0b00000001: "HLT",
+            0b01010000: "CALL",
+            0b00010001: "RET"
+        }
+        return instructions.get(IR, "unknown")
+
     def alu_identifier(self, num):
         if num == 0b0000:
             return "ADD"
@@ -75,8 +87,10 @@ class CPU:
         """ALU operations."""
 
         if op == "ADD":
+            # print('hey add')
             self.reg[reg_a] += self.reg[reg_b]
         elif op == "MUL":
+            # print('hey mul')
             self.reg[reg_a] *= self.reg[reg_b]
         elif op == "DIV":
             self.reg[reg_a] /= self.reg[reg_b]
@@ -118,32 +132,45 @@ class CPU:
             operand_b = self.ram_read(self.pc + 2)
             num_of_operands = IR >> 6
             alu_oper = True if IR & 0b00100000 == 32 else False
-            # print('alu?', alu_oper)
+            set_pc_directly = IR & 0b00010000 == 16
+            instruction = self.get_instr_name(IR)
 
             # self.trace()
-            if IR == 0b10000010:  # LDI
-                self.reg[operand_a] = operand_b
-                self.pc += num_of_operands
-            elif alu_oper:
+            if alu_oper:
                 num = IR & 0b00001111
                 # print('mul is 2', num)
-                operation = self.alu_identifier(num)
+                instruction = self.alu_identifier(num)
                 # print('operation', operation)
-                self.alu(operation, operand_a, operand_b)
-                self.pc += num_of_operands
-            elif IR == 0b01000111:  # PRN
+                self.alu(instruction, operand_a, operand_b)
+            elif instruction == "LDI":
+                self.reg[operand_a] = operand_b
+            elif instruction == "PRN":
                 print(self.reg[operand_a])
-                self.pc += num_of_operands
-            elif IR == 0b01000101:  # PUSH
+            elif instruction == "PUSH":
                 stackPointer -= 1
                 self.ram_write(stackPointer, self.reg[operand_a])
-                self.pc += num_of_operands
-            elif IR == 0b01000110:  # POP
+            elif instruction == "POP":
                 self.reg[operand_a] = self.ram_read(stackPointer)
                 stackPointer += 1
-                self.pc += num_of_operands
-            elif IR == 0b00000001:  # HLT
-                running = False
+            elif instruction == "CALL":
+                ret_addr = self.pc + 2
+                stackPointer -= 1
+                self.ram_write(stackPointer, ret_addr)
 
+                self.pc = self.reg[operand_a]
+
+            elif instruction == "RET":
+                self.pc = self.ram_read(stackPointer)
+                stackPointer += 1
+
+            elif instruction == "HLT":
+                running = False
+            else:
+                print('unknown instruction!')
+                return
+
+            # print('instruction', instruction, '--',
+            #       'pc directly', set_pc_directly)
             # increment program counter to the next operation:
-            self.pc += 1
+            if not set_pc_directly:
+                self.pc += (num_of_operands + 1)
