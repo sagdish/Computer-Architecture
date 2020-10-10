@@ -174,16 +174,15 @@ class CPU:
             elif instruction == "JMP":
                 self.pc = self.reg[operand_a]
             elif instruction == "JEQ":
-                if self.FL == 1:
+                if self.FL == 0b00000001:
                     self.pc = self.reg[operand_a]
                 else:
                     set_pc_directly = False
             elif instruction == "JNE":
-                if self.FL == 0:
+                if self.FL & 0b00000001 == 0:
                     self.pc = self.reg[operand_a]
                 else:
                     set_pc_directly = False
-
             elif instruction == "HLT":
                 running = False
             else:
