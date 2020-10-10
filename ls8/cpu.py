@@ -48,7 +48,8 @@ class CPU:
             0b01000110: "POP",
             0b00000001: "HLT",
             0b01010000: "CALL",
-            0b00010001: "RET"
+            0b00010001: "RET",
+            0b01010100: "JMP"
         }
         return instructions.get(IR, "unknown")
 
@@ -164,13 +165,12 @@ class CPU:
                 ret_addr = self.pc + 2
                 stackPointer -= 1
                 self.ram_write(stackPointer, ret_addr)
-
                 self.pc = self.reg[operand_a]
-
             elif instruction == "RET":
                 self.pc = self.ram_read(stackPointer)
                 stackPointer += 1
-
+            elif instruction == "JMP":
+                self.pc = self.reg[operand_a]
             elif instruction == "HLT":
                 running = False
             else:
