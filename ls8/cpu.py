@@ -11,6 +11,7 @@ class CPU:
         self.pc = 0
         self.reg = [0] * 8
         self.ram = [0] * 256
+        self.FL = 0b00000000
 
     def ram_read(self, MAR):
         return self.ram[MAR]
@@ -98,6 +99,13 @@ class CPU:
             self.reg[reg_a] += 1
         elif op == "DEC":
             self.reg[reg_a] -= 1
+        elif op == "CMP":
+            if self.reg[reg_a] > self.reg[reg_b]:
+                self.FL = 0b00000010
+            elif self.reg[reg_a] < self.reg[reg_b]:
+                self.FL = 0b00000100
+            elif self.reg[reg_a] == self.reg[reg_b]:
+                self.FL = 0b00000001
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -171,6 +179,7 @@ class CPU:
 
             # print('instruction', instruction, '--',
             #       'pc directly', set_pc_directly)
+
             # increment program counter to the next operation:
             if not set_pc_directly:
                 self.pc += (num_of_operands + 1)
