@@ -49,7 +49,9 @@ class CPU:
             0b00000001: "HLT",
             0b01010000: "CALL",
             0b00010001: "RET",
-            0b01010100: "JMP"
+            0b01010100: "JMP",
+            0b01010101: "JEQ",
+            0b01010110: "JNE"
         }
         return instructions.get(IR, "unknown")
 
@@ -171,6 +173,17 @@ class CPU:
                 stackPointer += 1
             elif instruction == "JMP":
                 self.pc = self.reg[operand_a]
+            elif instruction == "JEQ":
+                if self.FL == 1:
+                    self.pc = self.reg[operand_a]
+                else:
+                    set_pc_directly = False
+            elif instruction == "JNE":
+                if self.FL == 0:
+                    self.pc = self.reg[operand_a]
+                else:
+                    set_pc_directly = False
+
             elif instruction == "HLT":
                 running = False
             else:
